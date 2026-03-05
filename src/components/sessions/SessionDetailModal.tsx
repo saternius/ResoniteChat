@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   Users,
@@ -48,9 +49,9 @@ export function SessionDetailModal({
     window.open("steam://run/2519830");
   }
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center pt-[10vh] p-4 animate-fade-in"
+      className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in"
       onClick={onClose}
     >
       <div
@@ -235,6 +236,7 @@ export function SessionDetailModal({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
