@@ -115,12 +115,17 @@
   }
 
   .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
+    animation: rainbow-glow 4s linear infinite;
   }
 
-  @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 5px var(--color-primary-glow); }
-    50% { box-shadow: 0 0 20px var(--color-primary-glow), 0 0 40px var(--color-primary-glow); }
+  @keyframes rainbow-glow {
+    0%   { filter: drop-shadow(0 0 4px #ff000080) drop-shadow(0 0 8px #ff000040); }
+    17%  { filter: drop-shadow(0 0 4px #ff880080) drop-shadow(0 0 8px #ff880040); }
+    33%  { filter: drop-shadow(0 0 4px #ffff0080) drop-shadow(0 0 8px #ffff0040); }
+    50%  { filter: drop-shadow(0 0 4px #00ff0080) drop-shadow(0 0 8px #00ff0040); }
+    67%  { filter: drop-shadow(0 0 4px #0088ff80) drop-shadow(0 0 8px #0088ff40); }
+    83%  { filter: drop-shadow(0 0 4px #aa00ff80) drop-shadow(0 0 8px #aa00ff40); }
+    100% { filter: drop-shadow(0 0 4px #ff000080) drop-shadow(0 0 8px #ff000040); }
   }
 
   @keyframes fade-in {
