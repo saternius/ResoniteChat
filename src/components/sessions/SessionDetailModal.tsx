@@ -50,7 +50,7 @@ export function SessionDetailModal({
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4 animate-fade-in"
+      className="fixed inset-0 bg-black/60 z-50 flex items-start justify-center pt-[10vh] p-4 animate-fade-in"
       onClick={onClose}
     >
       <div
