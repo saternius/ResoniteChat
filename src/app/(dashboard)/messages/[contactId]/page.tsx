@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "next/navigation";
-import { ArrowLeft, Send } from "lucide-react";
+import { ArrowLeft, Send, AlertCircle } from "lucide-react";
 import { useMessages } from "@/hooks/useMessages";
 import { useAuthStore } from "@/stores/authStore";
 import { useContactsStore } from "@/stores/contactsStore";
@@ -16,13 +16,14 @@ export default function ChatThreadPage() {
   const userId = useAuthStore((s) => s.userId);
   const contacts = useContactsStore((s) => s.contacts);
   const statusMap = useContactsStore((s) => s.statusMap);
-  const { activeMessages, isLoading, loadThread, sendMessage } = useMessages();
+  const { activeMessages, isLoading, failedMessageIds, loadThread, sendMessage } = useMessages();
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const contact = contacts.find((c) => c.id === contactId);
   const status = statusMap[contactId]?.onlineStatus ?? "Offline";
+  const hasFailedMessages = activeMessages.some((m) => failedMessageIds.has(m.id));
 
   useEffect(() => {
     loadThread(contactId);
@@ -37,12 +38,11 @@ export default function ChatThreadPage() {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || sending) return;
+    const text = input.trim();
+    setInput("");
     setSending(true);
     try {
-      await sendMessage(input.trim());
-      setInput("");
-      // Reload thread to get the sent message
-      await loadThread(contactId);
+      await sendMessage(text);
     } finally {
       setSending(false);
     }
@@ -74,6 +74,14 @@ export default function ChatThreadPage() {
         </div>
       </div>
 
+      {/* Send failure notification */}
+      {hasFailedMessages && (
+        <div className="flex items-center gap-2 px-4 py-2 bg-red-500/15 border-x border-red-500/30 text-red-400 text-xs">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+          <span>Some messages failed to send. Check your connection and try again.</span>
+        </div>
+      )}
+
       {/* Messages */}
       <div
         ref={scrollRef}
@@ -92,6 +100,7 @@ export default function ChatThreadPage() {
         ) : (
           activeMessages.map((msg) => {
             const isMine = msg.senderId === userId;
+            const isFailed = failedMessageIds.has(msg.id);
             return (
               <div
                 key={msg.id}
@@ -100,14 +109,17 @@ export default function ChatThreadPage() {
                 <div
                   className={cn(
                     "max-w-[70%] rounded-2xl px-4 py-2.5 text-sm",
-                    isMine
-                      ? "bg-primary/20 border border-primary/30 text-text-primary rounded-br-md"
-                      : "bg-base-lighter border border-surface-border text-text-primary rounded-bl-md",
+                    isFailed
+                      ? "bg-red-500/20 border border-red-500/40 text-text-primary rounded-br-md"
+                      : isMine
+                        ? "bg-primary/20 border border-primary/30 text-text-primary rounded-br-md"
+                        : "bg-base-lighter border border-surface-border text-text-primary rounded-bl-md",
                   )}
                 >
                   <p className="whitespace-pre-wrap break-words"><RichText>{formatMessagePreview(msg.content, msg.messageType)}</RichText></p>
-                  <p className={cn("text-[10px] mt-1", isMine ? "text-primary-light/60" : "text-text-muted")}>
-                    {formatRelativeTime(msg.sendTime)}
+                  <p className={cn("text-[10px] mt-1 flex items-center gap-1", isFailed ? "text-red-400" : isMine ? "text-primary-light/60" : "text-text-muted")}>
+                    {isFailed && <AlertCircle className="h-3 w-3" />}
+                    {isFailed ? "Failed to send" : formatRelativeTime(msg.sendTime)}
                   </p>
                 </div>
               </div>

@@ -10,11 +10,13 @@ interface MessagesState {
   isLoading: boolean;
   error: string | null;
   totalUnread: number;
+  failedMessageIds: Set<string>;
 
   setConversations: (conversations: Conversation[]) => void;
   setActiveMessages: (messages: ResoniteMessage[]) => void;
   setActiveContactId: (contactId: string | null) => void;
   addMessage: (message: ResoniteMessage) => void;
+  markMessageFailed: (messageId: string) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   updateUnreadCount: () => void;
@@ -27,6 +29,7 @@ export const useMessagesStore = create<MessagesState>()((set, get) => ({
   isLoading: false,
   error: null,
   totalUnread: 0,
+  failedMessageIds: new Set(),
 
   setConversations: (conversations) => {
     set({ conversations });
@@ -57,6 +60,13 @@ export const useMessagesStore = create<MessagesState>()((set, get) => ({
         };
       }
       return { activeMessages: newMessages, conversations: updated };
+    }),
+
+  markMessageFailed: (messageId) =>
+    set((state) => {
+      const next = new Set(state.failedMessageIds);
+      next.add(messageId);
+      return { failedMessageIds: next };
     }),
 
   setLoading: (isLoading) => set({ isLoading }),

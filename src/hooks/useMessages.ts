@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useRef } from "react";
 import { useAuthStore } from "@/stores/authStore";
 import { useMessagesStore } from "@/stores/messagesStore";
 import { useContactsStore } from "@/stores/contactsStore";
@@ -15,13 +15,16 @@ export function useMessages() {
     activeMessages,
     activeContactId,
     isLoading,
+    failedMessageIds,
     setConversations,
     setActiveMessages,
     setActiveContactId,
     setLoading,
     setError,
+    markMessageFailed,
   } = useMessagesStore();
   const contacts = useContactsStore((s) => s.contacts);
+  const loadingThreadRef = useRef<string | null>(null);
 
   const loadConversations = useCallback(async () => {
     if (!userId) return;
@@ -74,6 +77,9 @@ export function useMessages() {
   const loadThread = useCallback(
     async (contactId: string) => {
       if (!userId) return;
+      // Dedup: skip if already loading this same contact
+      if (loadingThreadRef.current === contactId) return;
+      loadingThreadRef.current = contactId;
       setActiveContactId(contactId);
       setLoading(true);
       try {
@@ -98,6 +104,7 @@ export function useMessages() {
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load thread");
       } finally {
+        loadingThreadRef.current = null;
         setLoading(false);
       }
     },
@@ -107,9 +114,26 @@ export function useMessages() {
   const sendMessage = useCallback(
     async (content: string) => {
       if (!userId || !activeContactId) return;
-      await sendSignalRMessage(activeContactId, content);
+      const now = new Date().toISOString();
+      const optimisticMsg: ResoniteMessage = {
+        id: `MSG-${crypto.randomUUID()}`,
+        senderId: userId,
+        recipientId: activeContactId,
+        ownerId: userId,
+        messageType: "Text",
+        content,
+        sendTime: now,
+        lastUpdateTime: now,
+      };
+      // Optimistically append to active messages
+      setActiveMessages([...activeMessages, optimisticMsg]);
+      try {
+        await sendSignalRMessage(userId, activeContactId, content);
+      } catch {
+        markMessageFailed(optimisticMsg.id);
+      }
     },
-    [userId, activeContactId],
+    [userId, activeContactId, activeMessages, setActiveMessages, markMessageFailed],
   );
 
   return {
@@ -117,6 +141,7 @@ export function useMessages() {
     activeMessages,
     activeContactId,
     isLoading,
+    failedMessageIds,
     loadConversations,
     loadThread,
     sendMessage,

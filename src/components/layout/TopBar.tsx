@@ -34,7 +34,7 @@ export function TopBar() {
           <img src="/resonite-logo.png" alt="Resonite" className="h-7 w-7 rounded-lg" />
           <h1 className="font-heading text-lg font-semibold hidden sm:block">
             <span className="text-text-primary">Resonite</span>
-            <span className="text-primary-light"> Dashboard</span>
+            <span className="text-primary-light"> Dash</span>
           </h1>
         </div>
       </div>

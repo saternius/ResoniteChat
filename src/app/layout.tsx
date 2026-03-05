@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Resonite Dashboard",
+  title: "Resonite Dash",
   description: "Web dashboard for Resonite - manage friends, sessions, messages, and inventory",
   icons: {
     icon: "/resonite-logo.png",

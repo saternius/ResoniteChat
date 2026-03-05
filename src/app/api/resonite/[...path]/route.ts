@@ -30,9 +30,11 @@ export async function handler(
     url.searchParams.set(key, value);
   });
 
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+  const headers: Record<string, string> = {};
+
+  // Forward the original Content-Type (SignalR uses text/plain, REST uses application/json)
+  const contentType = req.headers.get("content-type");
+  headers["Content-Type"] = contentType || "application/json";
 
   // Forward auth header (strip "Bearer " prefix added by SignalR)
   const auth = req.headers.get("authorization");

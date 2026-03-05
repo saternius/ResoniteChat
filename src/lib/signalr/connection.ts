@@ -147,14 +147,21 @@ export async function markMessagesRead(
 }
 
 export async function sendSignalRMessage(
+  senderId: string,
   recipientId: string,
   content: string,
   messageType = "Text",
 ): Promise<void> {
   if (!connection) throw new Error("Not connected");
-  await connection.invoke("SendMessage", {
+  const now = new Date().toISOString();
+  const payload = {
+    id: `MSG-${crypto.randomUUID()}`,
+    senderId,
     recipientId,
     messageType,
+    sendTime: now,
+    lastUpdateTime: now,
     content,
-  });
+  };
+  await connection.invoke("SendMessage", payload);
 }
